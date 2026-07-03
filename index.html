@@ -403,56 +403,66 @@
   }
 
   function guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuadrilla, capataz, reclamo, linkMapas) {
-    const nuevoCambio = { numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario };
-    
-    cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
-    cambiosPendientes.push(nuevoCambio);
-    localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
-    
-    actualizarAlertaCambios();
-    renderizarReclamosAgrupados();
-
-    let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
-    let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
-
-    let msg = `*REPORTE DE MOVIMIENTO RAT*\n`;
-    msg += `*Estado:* ${nuevoEstado === 'Realizado' ? 'REALIZADO' : 'EN PROCESO'}\n`;
-    msg += `*Fila:* #${reclamo.numFila}\n`;
-    msg += `*Línea:* ${reclamo.linea}\n`;
-    msg += `*Piquete:* ${vanoWpp}\n`;
-    msg += `*Detalle:* ${detalleWpp}\n`;
-    msg += `*Categoría:* ${reclamo.categoria}\n`;
-    msg += `*Cuadrilla:* ${cuadrilla}\n`;
-    msg += `*Capataz:* ${capataz}\n`;
-    if (comentario && nuevoEstado === "En proceso") {
-      msg += `*Avance:* _${comentario}_\n`;
-    }
-    msg += `*Ubicación:* ${linkMapas}\n`;
-
-    const urlWpp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
-
-    if (navigator.onLine) {
-      document.body.style.opacity = "0.6";
-
-      fetch(WEB_APP_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({ action: "guardarCambios", cambios: [nuevoCambio] })
-      })
-      .then(() => {
-        cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
-        localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
-        actualizarAlertaCambios();
-      })
-      .catch(err => console.log("Retenido offline:", err))
-      .finally(() => {
-        document.body.style.opacity = "1";
-        window.location.href = urlWpp;
-      });
-    } else {
-      window.location.href = urlWpp;
-    }
+  const nuevoCambio = { numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario };
+  
+  // 1. Actualizar la cola de cambios pendientes (para el envío)
+  cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
+  cambiosPendientes.push(nuevoCambio);
+  localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
+  
+  // ⭐ EL ARREGLO: Actualizar la base de datos local del teléfono inmediatamente
+  const reclamoEnMemoria = reclamosCache.find(r => r.numFila === numFila);
+  if (reclamoEnMemoria) {
+    reclamoEnMemoria.estado = nuevoEstado; // Cambiamos 'Pendiente' por 'Realizado' en la memoria del celu
+    localStorage.setItem('cuadrilla_reclamos', JSON.stringify(reclamosCache));
   }
+
+  actualizarAlertaCambios();
+  renderizarReclamosAgrupados();
+
+  let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
+  let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
+
+  let msg = `*REPORTE DE MOVIMIENTO RAT*\n`;
+  msg += `*Estado:* ${nuevoEstado === 'Realizado' ? 'REALIZADO' : 'EN PROCESO'}\n`;
+  msg += `*Fila:* #${reclamo.numFila}\n`;
+  msg += `*Línea:* ${reclamo.linea}\n`;
+  msg += `*Piquete:* ${vanoWpp}\n`;
+  msg += `*Detalle:* ${detalleWpp}\n`;
+  msg += `*Categoría:* ${reclamo.categoria}\n`;
+  msg += `*Cuadrilla:* ${cuadrilla}\n`;
+  msg += `*Capataz:* ${capataz}\n`;
+  if (comentario && nuevoEstado === "En proceso") {
+    msg += `*Avance:* _${comentario}_\n`;
+  }
+  msg += `*Ubicación:* ${linkMapas}\n`;
+
+  const urlWpp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
+
+  if (navigator.onLine) {
+    document.body.style.opacity = "0.6";
+
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify({ action: "guardarCambios", cambios: [nuevoCambio] })
+    })
+    .then(() => {
+      cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
+      localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
+      actualizarAlertaCambios();
+      // Forzar un redibujado limpio de seguridad
+      renderizarReclamosAgrupados(); 
+    })
+    .catch(err => console.log("Retenido offline:", err))
+    .finally(() => {
+      document.body.style.opacity = "1";
+      window.location.href = urlWpp;
+    });
+  } else {
+    window.location.href = urlWpp;
+  }
+}
 </script>
 </body>
 </html>
