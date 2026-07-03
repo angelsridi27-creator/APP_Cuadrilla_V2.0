@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -63,7 +62,6 @@
 
 <div class="container">
   
-  <!-- PANTALLA 1: LOGIN OBLIGATORIO -->
   <div id="pantalla-login">
     <div class="ot-doc-header" style="margin-bottom:20px;">
       <div class="ot-doc-top">
@@ -86,14 +84,12 @@
     <button class="btn btn-success" style="font-size: 13px;" onclick="descargarDatosOnline()">Sincronizar Listas y Claves (Con Señal)</button>
   </div>
 
-  <!-- PANTALLA 2: APLICACIÓN PRINCIPAL (FORMATO OT DOCUMENT) -->
   <div id="pantalla-principal">
     <div class="welcome-user">
       <span id="txt-user-activo">Capataz: -</span>
       <button class="btn-danger" style="margin:0; padding: 4px 8px; border-radius:4px;" onclick="cerrarSesion()">Salir</button>
     </div>
 
-    <!-- CABECERA SIMULADA DE ORDEN DE TRABAJO ORIGINAL -->
     <div class="ot-doc-header">
       <div class="ot-doc-top">
         <div class="ot-doc-logo"><b>EPEC</b><br><small>DEPARTAMENTO<br>REDES ALTA TENSIÓN</small></div>
@@ -113,7 +109,6 @@
 
     <button class="btn btn-primary" onclick="descargarDatosOnline()">🔄 1. Sincronizar Datos Nuevos (Con Señal)</button>
     
-    <!-- CONTENEDOR DE LA MATRIZ DE RECLAMOS -->
     <div id="lista-reclamos"></div>
 
     <hr style="margin: 20px 0; border: 0; border-top: 2px dashed #000;">
@@ -256,7 +251,9 @@
     } else {
       lineasDisponibles.sort().forEach(l => { select.innerHTML += `<option value="${l}">${l}</option>`; });
     }
-    document.getElementById('lista-reclamos').innerHTML = '';
+    
+    // Si ya teníamos una línea guardada o seleccionada, la volvemos a aplicar
+    renderizarReclamosAgrupados();
   }
 
   /* --- RENDERIZADO EN FORMATO MATRIZ DE ORDEN DE TRABAJO ORIGINAL --- */
@@ -308,14 +305,14 @@
 
         let vanoTexto = r.datosFila[4] !== undefined && r.datosFila[4] !== "" ? r.datosFila[4] : "S/V";
         let detalleTexto = r.datosFila[8] !== undefined && r.datosFila[8] !== "" ? r.datosFila[8] : "-";
-        let colorFinal = r.colorFondo || "#ffffff"; // Viene traducido en pastel desde el backend[cite: 1]
+        let colorFinal = r.colorFondo || "#ffffff"; // Viene traducido en pastel desde el backend
 
         const cell = document.createElement('div');
         cell.className = `ot-matrix-cell ${estadoActual === 'Realizado' ? 'realizado' : ''} ${esPrioritario && estadoActual !== 'Realizado' ? 'prioritaria' : ''}`;
         
-        // Si no está realizado, aplicamos el color pastel de la planilla en la celda[cite: 1]
+        // --- FIX DE DISEÑO AQUÍ ---
         if (estadoActual !== 'Realizado') {
-          cell.style.setAttribute("style", `background-color: ${colorFinal} !important;`);
+          cell.setAttribute("style", "background-color: " + colorFinal + " !important;");
         }
 
         let badgeClase = 'badge-pend';
@@ -372,10 +369,10 @@
         function(position) {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
-          guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, `https://www.google.com/maps?q=${lat},${lon}`);
+          guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, `https://maps.google.com/?q=${lat},${lon}`);
         },
         function(error) {
-          guardarLocalYaveragedWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No disponible GPS");
+          guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No disponible GPS");
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
@@ -411,7 +408,7 @@
     msg += `*Ubicación:* ${linkMapas}\n`;
 
     const urlWpp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
-    window.location.href = urlWpp; // Redirección instantánea sin bloqueos móviles[cite: 1]
+    window.location.href = urlWpp; 
   }
 
   function sincronizarConPlanilla() {
