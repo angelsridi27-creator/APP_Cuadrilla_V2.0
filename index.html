@@ -31,31 +31,37 @@
     .ot-doc-meta { padding: 8px 12px; background: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px dashed #000; }
     .ot-doc-sub { background: #e9ecef; text-align: center; font-weight: bold; font-size: 12px; padding: 5px; border-top: 1px solid #000; border-bottom: 2px solid #000; letter-spacing: 1px; }
 
-    /* --- FILAS DE MATRIZ DE TIPO DE AVERÍA --- */
-    .ot-row { display: flex; border: 2px solid #000; margin-bottom: 15px; background: #fff; border-radius: 4px; overflow: hidden; }
-    .ot-row-header { width: 100px; background: #0056b3; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font-size: 13px; text-transform: uppercase; border-right: 2px solid #000; flex-shrink: 0; word-break: break-word; }
-    .ot-row-cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); flex-grow: 1; background: #e9ecef; gap: 1px; }
+    /* --- CONTENEDORES DE SECCIÓN ORIGINALES --- */
+    .ot-bloque-categoria { margin-bottom: 25px; border: 2px solid #000; background: #fff; border-radius: 4px; overflow: hidden; }
+    .ot-banda-titulo { background: #0056b3; color: white; font-weight: bold; padding: 8px 12px; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #000; letter-spacing: 0.5px; }
     
-    /* --- CELDAS / PIQUETES --- */
-    .ot-matrix-cell { border: 1px solid #bbb; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: 160px; background-color: #fff; position: relative; }
+    /* --- GRILLA DE RECLAMOS FORMATO MATRIZ --- */
+    .ot-grilla-celdas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; background: #f8f9fa; }
+    
+    /* --- CELDAS / RECLAMOS (COPIA FIEL DE LA HOJA FÍSICA) --- */
+    .ot-matrix-cell { border: 2px solid #000; background-color: #fff; display: flex; flex-direction: column; border-radius: 0px !important; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .ot-matrix-cell.prioritaria { border: 2.5px dashed #ff9900 !important; }
-    .ot-matrix-cell.realizado { background-color: #e9ecef !important; opacity: 0.7; }
+    .ot-matrix-cell.realizado { opacity: 0.6; }
     
-    .ot-cell-vano { font-size: 15px; font-weight: bold; text-align: center; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 5px; background: rgba(255,255,255,0.7); border-radius: 2px; }
-    .ot-cell-detalle { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.3; flex-grow: 1; display: flex; align-items: center; justify-content: center; text-transform: uppercase; margin-bottom: 5px; }
+    /* Encabezado de la celda: Número de piquete puro (Fondo blanco) */
+    .ot-cell-header-piq { background: #ffffff !important; color: #000000; font-size: 16px; font-weight: bold; text-align: center; padding: 6px 2px; border-bottom: 2px solid #000000; text-transform: uppercase; }
     
-    .ot-cell-footer { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }
-    .ot-cell-badge { font-size: 9px; font-weight: bold; text-align: center; padding: 2px; border-radius: 3px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.2); }
+    /* Cuerpo de la celda: El detalle de la avería (Toma el color de fondo pastel) */
+    .ot-cell-body-detalle { font-size: 12px; font-weight: bold; color: #000000; text-align: center; padding: 12px 6px; flex-grow: 1; display: flex; align-items: center; justify-content: center; text-transform: uppercase; line-height: 1.3; }
+    
+    /* Pie de la celda: Operaciones de la App */
+    .ot-cell-footer { background: #ffffff; border-top: 1px solid #000; padding: 4px; display: flex; flex-direction: column; gap: 4px; }
+    .ot-cell-badge { font-size: 9px; font-weight: bold; text-align: center; padding: 3px; border-radius: 0px; text-transform: uppercase; border: 1px solid #000; }
     .badge-pend { background: #ffc107; color: #000; }
     .badge-proc { background: #17a2b8; color: #fff; }
     .badge-real { background: #6c757d; color: #fff; text-decoration: line-through; }
     
-    .ot-cell-actions { display: flex; gap: 3px; }
-    .ot-cell-btn { flex: 1; font-size: 10px; padding: 6px 2px; border: 1px solid #000; border-radius: 3px; cursor: pointer; font-weight: bold; color: white; text-align: center; }
+    .ot-cell-actions { display: flex; gap: 4px; }
+    .ot-cell-btn { flex: 1; font-size: 12px; padding: 6px 0; border: 1px solid #000; border-radius: 0px; cursor: pointer; font-weight: bold; color: white; text-align: center; display: flex; align-items: center; justify-content: center; }
     
     .status-box { padding: 12px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border: 2px solid #ff9900; background-color: #fffdf5; }
     .welcome-user { font-size: 14px; font-weight: bold; color: #0056b3; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; }
-    .msg-bloqueado { font-size: 10px; font-weight: bold; color: #28a745; text-align: center; background: #d4edda; padding: 4px; border: 1px solid #28a745; border-radius: 3px; }
+    .msg-bloqueado { font-size: 10px; font-weight: bold; color: #28a745; text-align: center; background: #d4edda; padding: 5px; border: 1px solid #000; border-radius: 0px; }
   </style>
 </head>
 <body>
@@ -252,11 +258,10 @@
       lineasDisponibles.sort().forEach(l => { select.innerHTML += `<option value="${l}">${l}</option>`; });
     }
     
-    // Si ya teníamos una línea guardada o seleccionada, la volvemos a aplicar
     renderizarReclamosAgrupados();
   }
 
-  /* --- RENDERIZADO EN FORMATO MATRIZ DE ORDEN DE TRABAJO ORIGINAL --- */
+  /* --- RENDERIZADO EN FORMATO GRUPO E INSIGNIA DE OT ORIGINAL --- */
   function renderizarReclamosAgrupados() {
     const lineaSeleccionada = document.getElementById('select-linea').value;
     const listaDiv = document.getElementById('lista-reclamos');
@@ -269,29 +274,29 @@
       return;
     }
 
-    // Agrupar reclamos estrictamente por Categoría (Tipo de Avería)
+    // Agrupar reclamos por Categoría (PODA, NIDO, PUESTA A TIERRA, etc.)
     const grupos = {};
     filtrados.forEach(r => {
       if (!grupos[r.categoria]) grupos[r.categoria] = [];
       grupos[r.categoria].push(r);
     });
 
-    // Crear la estructura de Filas y Columnas como en el PDF
+    // Armar el bloque por cada tipo de avería
     for (const categoria in grupos) {
-      const otRow = document.createElement('div');
-      otRow.className = 'ot-row';
+      const bloqueCat = document.createElement('div');
+      bloqueCat.className = 'ot-bloque-categoria';
 
-      // Columna Izquierda: Tipo de Avería (PODA, NIDO, etc.)
-      const otRowHeader = document.createElement('div');
-      otRowHeader.className = 'ot-row-header';
-      otRowHeader.innerText = categoria;
-      otRow.appendChild(otRowHeader);
+      // Banda superior azul con el nombre de la categoría (Tipo de Avería)
+      const bandaTitulo = document.createElement('div');
+      bandaTitulo.className = 'ot-banda-titulo';
+      bandaTitulo.innerText = categoria;
+      bloqueCat.appendChild(bandaTitulo);
 
-      // Columna Derecha: Grilla de Celdas/Piquetes correspondientes
-      const otRowCells = document.createElement('div');
-      otRowCells.className = 'ot-row-cells';
+      // Grilla de celdas internas en paralelo (2 columnas óptimas para celular)
+      const grillaCeldas = document.createElement('div');
+      grillaCeldas.className = 'ot-grilla-celdas';
 
-      // Ordenar las celdas para que las prioritarias aparezcan primero en su fila
+      // Ordenar las celdas colocando prioritarias primero
       grupos[categoria].sort((a, b) => {
         let aCheck = a.datosFila[3] === true || a.datosFila[3] === "TRUE";
         let bCheck = b.datosFila[3] === true || b.datosFila[3] === "TRUE";
@@ -305,15 +310,10 @@
 
         let vanoTexto = r.datosFila[4] !== undefined && r.datosFila[4] !== "" ? r.datosFila[4] : "S/V";
         let detalleTexto = r.datosFila[8] !== undefined && r.datosFila[8] !== "" ? r.datosFila[8] : "-";
-        let colorFinal = r.colorFondo || "#ffffff"; // Viene traducido en pastel desde el backend
+        let colorFinal = r.colorFondo || "#ffffff"; // Color pastel de la celda desde Sheets
 
         const cell = document.createElement('div');
         cell.className = `ot-matrix-cell ${estadoActual === 'Realizado' ? 'realizado' : ''} ${esPrioritario && estadoActual !== 'Realizado' ? 'prioritaria' : ''}`;
-        
-        // --- FIX DE DISEÑO AQUÍ ---
-        if (estadoActual !== 'Realizado') {
-          cell.setAttribute("style", "background-color: " + colorFinal + " !important;");
-        }
 
         let badgeClase = 'badge-pend';
         if (estadoActual === 'En proceso') badgeClase = 'badge-proc';
@@ -331,21 +331,22 @@
           `;
         }
 
-        // Armamos el cuerpo de la celda compacta técnica
+        // MAQUETADO EXTREMADAMENTE COMPACTO Y FIEL A LA CELDA ORIGINAL IMPRESA:
+        // Fila superior en blanco con número de piquete. Fila inferior de color completo con la avería.
         cell.innerHTML = `
-          <div class="ot-cell-vano">${esPrioritario && estadoActual !== 'Realizado' ? '🎯 ' : ''}Piq. ${vanoTexto}</div>
-          <div class="ot-cell-detalle">${detalleTexto}</div>
+          <div class="ot-cell-header-piq">${esPrioritario && estadoActual !== 'Realizado' ? '🎯 ' : ''}${vanoTexto}</div>
+          <div class="ot-cell-body-detalle" style="background-color: ${colorFinal} !important;">${detalleTexto}</div>
           <div class="ot-cell-footer">
             <span class="ot-cell-badge ${badgeClase}">${estadoActual}</span>
             ${accionesHtml}
           </div>
         `;
         
-        otRowCells.appendChild(cell);
+        grillaCeldas.appendChild(cell);
       });
 
-      otRow.appendChild(otRowCells);
-      listaDiv.appendChild(otRow);
+      bloqueCat.appendChild(grillaCeldas);
+      listaDiv.appendChild(bloqueCat);
     }
   }
 
