@@ -23,7 +23,7 @@
     
     select, input[type="password"] { width: 100%; padding: 10px; margin: 5px 0; border-radius: 4px; border: 2px solid #000; font-size: 15px; box-sizing: border-box; background: white; }
     
-    /* --- CABECERA ESTILO DOCUMENTO OT ORIGINAL (EPEC) --- */
+    /* --- CABECERA ESTIRO DOCUMENTO OT ORIGINAL (EPEC) --- */
     .ot-doc-header { border: 2px solid #000; background: #fff; margin-bottom: 15px; border-radius: 4px; }
     .ot-doc-top { display: flex; border-bottom: 2px solid #000; }
     .ot-doc-logo { padding: 10px; font-size: 15px; font-weight: bold; text-align: center; border-right: 2px solid #000; background: #f1f3f5; flex: 1; line-height: 1.2; }
@@ -41,7 +41,7 @@
     /* --- CELDAS / RECLAMOS --- */
     .ot-matrix-cell { border: 2px solid #000; background-color: #fff; display: flex; flex-direction: column; border-radius: 0px !important; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
     
-    /* RESALTADO NUEVO (COLUMNA D TILDE): Borde sólido grueso rojo industrial */
+    /* RESALTADO TÉCNICO (COLUMNA D CON TILDE): Borde sólido grueso rojo industrial */
     .ot-matrix-cell.prioritaria { border: 3px solid #dc3545 !important; }
     .ot-matrix-cell.prioritaria .ot-cell-header-piq { color: #dc3545; border-bottom: 2px solid #dc3545; }
     
@@ -67,7 +67,7 @@
     .ot-cell-status-proc { font-size: 10px; font-weight: bold; color: #17a2b8; text-align: center; border: 1px solid #17a2b8; padding: 4px; margin-bottom: 2px; letter-spacing: 0.5px; text-transform: uppercase; background: #eefcfe; }
     .msg-realizado { font-size: 11px; font-weight: bold; color: #ffffff; text-align: center; background: #28a745; padding: 6px; border: 1px solid #28a745; letter-spacing: 0.5px; text-transform: uppercase; }
     
-    .status-box { padding: 12px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border: 2px solid #ff9900; background-color: #fffdf5; }
+    .status-box { padding: 12px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border: 2px solid #dc3545; background-color: #fff5f5; color: #dc3545; }
     .welcome-user { font-size: 14px; font-weight: bold; color: #0056b3; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; }
   </style>
 </head>
@@ -120,17 +120,14 @@
 
     <div id="sync-status" class="status-box" style="display:none;"></div>
 
-    <button class="btn btn-primary" onclick="descargarDatosOnline()">🔄 1. Sincronizar Datos Nuevos (Con Señal)</button>
+    <button class="btn btn-primary" onclick="descargarDatosOnline()">🔄 Sincronizar y Descargar Datos (Con Señal)</button>
     
     <div id="lista-reclamos"></div>
-
-    <hr style="margin: 20px 0; border: 0; border-top: 2px dashed #000;">
-    <button class="btn btn-success" style="font-size: 16px;" onclick="sincronizarConPlanilla()">💾 2. Subir Cambios Guardados a Planilla</button>
   </div>
 
 </div>
 
-<script>
+<script {nonce}>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx8KCIwjKTJM4pjqUrmrgP2Z9rHr0uIfO2r34lHWLfvRa4dPpByc3-ysX_Jbdpqt73YTg/exec";
 
   let reclamosCache = JSON.parse(localStorage.getItem('cuadrilla_reclamos')) || [];
@@ -149,7 +146,7 @@
     const selCap = document.getElementById('login-capataz');
     
     selCuad.innerHTML = '<option value="">-- Seleccione Cuadrilla --</option>';
-    opcionesDetalle.cuadrillas.forEach(c => { selCuad.innerHTML += `<option value="${c}">${c}</option>`; });
+    opcionesDetalle.cuadrillas.forEach(c => { selCuad.innerHTML += `<option value="${c}">${c}</option>'; });
 
     selCap.innerHTML = '<option value="">-- Seleccione Capataz --</option>';
     opcionesDetalle.capataces.forEach(c => {
@@ -202,7 +199,7 @@
 
   function cerrarSesion() {
     if(cambiosPendientes.length > 0) {
-      if(!confirm("Tenés cambios sin subir. ¿Salir igual?")) return;
+      if(!confirm("Tenés cambios pendientes de subida offline. ¿Salir igual?")) return;
     }
     localStorage.removeItem('sesion_capataz');
     verificarSesionActiva();
@@ -212,7 +209,7 @@
     const alertBox = document.getElementById('sync-status');
     if (cambiosPendientes.length > 0) {
       alertBox.style.display = 'block';
-      alertBox.innerText = `⚠️ Tienes ${cambiosPendientes.length} cambio(s) listos. ¡No olvides subirlos con internet!`;
+      alertBox.innerText = `Aviso: Tenés ${cambiosPendientes.length} reporte(s) guardados offline. Se subirán solos al sincronizar con señal.`;
     } else {
       alertBox.style.display = 'none';
     }
@@ -222,28 +219,44 @@
     if(!navigator.onLine) return alert("Sin conexión a internet.");
     document.body.style.opacity = "0.5";
 
-    fetch(`${WEB_APP_URL}?action=obtenerDatos`)
-      .then(res => res.json())
-      .then(res => {
-        document.body.style.opacity = "1";
-        if (res.error) return alert("Error: " + res.error);
-        
-        reclamosCache = res.data;
-        resumenCache = res.resumen || [];
-        opcionesDetalle = { cuadrillas: res.cuadrillas, capataces: res.capataces };
-        
-        localStorage.setItem('cuadrilla_reclamos', JSON.stringify(reclamosCache));
-        localStorage.setItem('cuadrilla_resumen', JSON.stringify(resumenCache));
-        localStorage.setItem('cuadrilla_detalles', JSON.stringify(opcionesDetalle));
-        
-        poblarSelectsLogin();
-        poblarLineasFiltro();
-        alert("¡OT Digital Sincronizada con Éxito!");
-      })
-      .catch((err) => {
-        document.body.style.opacity = "1";
-        alert("Fallo de conexión.");
+    // Si detectamos cambios acumulados por falta de señal anterior, los vaciamos y subimos primero de forma automática
+    let promesaPrevia = Promise.resolve();
+    if (cambiosPendientes.length > 0) {
+      promesaPrevia = fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({ action: "guardarCambios", cambios: cambiosPendientes })
+      }).then(() => {
+        cambiosPendientes = [];
+        localStorage.removeItem('cuadrilla_cambios');
+        actualizarAlertaCambios();
       });
+    }
+
+    promesaPrevia.then(() => {
+      return fetch(`${WEB_APP_URL}?action=obtenerDatos`);
+    })
+    .then(res => res.json())
+    .then(res => {
+      document.body.style.opacity = "1";
+      if (res.error) return alert("Error: " + res.error);
+      
+      reclamosCache = res.data;
+      resumenCache = res.resumen || [];
+      opcionesDetalle = { cuadrillas: res.cuadrillas, capataces: res.capataces };
+      
+      localStorage.setItem('cuadrilla_reclamos', JSON.stringify(reclamosCache));
+      localStorage.setItem('cuadrilla_resumen', JSON.stringify(resumenCache));
+      localStorage.setItem('cuadrilla_detalles', JSON.stringify(opcionesDetalle));
+      
+      poblarSelectsLogin();
+      poblarLineasFiltro();
+      alert("¡OT Digital Actualizada Completa!");
+    })
+    .catch((err) => {
+      document.body.style.opacity = "1";
+      alert("Fallo de conexión al descargar.");
+    });
   }
 
   function poblarLineasFiltro() {
@@ -268,7 +281,6 @@
     renderizarReclamosAgrupados();
   }
 
-  /* --- RENDERIZADO EN FORMATO GRUPO E INSIGNIA DE OT ORIGINAL --- */
   function renderizarReclamosAgrupados() {
     const lineaSeleccionada = document.getElementById('select-linea').value;
     const listaDiv = document.getElementById('lista-reclamos');
@@ -299,7 +311,6 @@
       const grillaCeldas = document.createElement('div');
       grillaCeldas.className = 'ot-grilla-celdas';
 
-      // Ordenar las celdas colocando prioritarias primero
       grupos[categoria].sort((a, b) => {
         let aCheck = a.datosFila[3] === true || a.datosFila[3] === "TRUE";
         let bCheck = b.datosFila[3] === true || b.datosFila[3] === "TRUE";
@@ -318,7 +329,6 @@
         const cell = document.createElement('div');
         cell.className = `ot-matrix-cell ${estadoActual === 'Realizado' ? 'realizado' : ''} ${esPrioritario && estadoActual !== 'Realizado' ? 'prioritaria' : ''}`;
 
-        // Control estricto de las opciones/estados sin usar badges redundantes de "PENDIENTE"
         let accionesHtml = '';
         if (estadoActual === 'Realizado') {
           accionesHtml = `<div class="msg-realizado">REALIZADO</div>`;
@@ -330,7 +340,6 @@
             </div>
           `;
         } else {
-          // Si está pendiente, directamente muestra los dos botones planos para operar de una sola pulsación
           accionesHtml = `
             <div class="ot-cell-actions">
               <button class="ot-cell-btn btn-action-proceso" onclick="procesarCambioEstado(${r.numFila}, 'En proceso')">En proceso</button>
@@ -339,7 +348,6 @@
           `;
         }
 
-        // Estructura de celda sin diana y sin íconos. Piquete arriba, avería abajo.
         cell.innerHTML = `
           <div class="ot-cell-header-piq">Piq. ${vanoTexto}</div>
           <div class="ot-cell-body-detalle" style="background-color: ${colorFinal} !important;">${detalleTexto}</div>
@@ -376,26 +384,31 @@
         function(position) {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
-          guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, `https://maps.google.com/?q=${lat},${lon}`);
+          guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuad, cap, reclamo, `https://maps.google.com/?q=${lat},${lon}`);
         },
         function(error) {
-          guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No disponible GPS");
+          guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No disponible GPS");
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
     } else {
-      guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No soportado");
+      guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No soportado");
     }
   }
 
-  function guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuadrilla, capataz, reclamo, linkMapas) {
+  /* --- INYECCIÓN EN CALIENTE DIRECTO A GOOGLE SHEETS --- */
+  function guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuadrilla, capataz, reclamo, linkMapas) {
+    const nuevoCambio = { numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario };
+    
+    // 1. Registro inmediato en cola local (Seguridad por si se corta internet repentinamente)
     cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
-    cambiosPendientes.push({ numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario });
+    cambiosPendientes.push(nuevoCambio);
     localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
     
     actualizarAlertaCambios();
     renderizarReclamosAgrupados();
 
+    // 2. Preparar empaquetado del mensaje de WhatsApp
     let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
     let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
 
@@ -408,38 +421,37 @@
     msg += `*Categoría:* ${reclamo.categoria}\n`;
     msg += `*Cuadrilla:* ${cuadrilla}\n`;
     msg += `*Capataz:* ${capataz}\n`;
-    
     if (comentario && nuevoEstado === "En proceso") {
       msg += `*Avance:* _${comentario}_\n`;
     }
     msg += `*Ubicación:* ${linkMapas}\n`;
 
     const urlWpp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
-    window.location.href = urlWpp; 
-  }
 
-  function sincronizarConPlanilla() {
-    if (cambiosPendientes.length === 0) return alert("No hay movimientos para subir.");
-    if (!navigator.onLine) return alert("Estás sin señal de internet.");
-    document.body.style.opacity = "0.5";
+    // 3. Estrategia de envío inmediato según conectividad
+    if (navigator.onLine) {
+      document.body.style.opacity = "0.6"; // Feedback visual sutil de guardado
 
-    fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify({ action: "guardarCambios", cambios: cambiosPendientes })
-    })
-    .then(() => {
-      document.body.style.opacity = "1";
-      alert("¡Planilla actualizada! Datos guardados en Columna G.");
-      cambiosPendientes = [];
-      localStorage.removeItem('cuadrilla_cambios');
-      actualizarAlertaCambios();
-      descargarDatosOnline();
-    })
-    .catch(() => {
-      document.body.style.opacity = "1";
-      alert("Error al enviar.");
-    });
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({ action: "guardarCambios", cambios: [nuevoCambio] })
+      })
+      .then(() => {
+        // Al impactar correctamente en Sheets, lo sacamos de la cola de pendientes
+        cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
+        localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
+        actualizarAlertaCambios();
+      })
+      .catch(err => console.log("Guardado local retenido por microcorte:", err))
+      .finally(() => {
+        document.body.style.opacity = "1";
+        window.location.href = urlWpp; // Salto automático a WhatsApp
+      });
+    } else {
+      // Sin internet: salta directo a WhatsApp y queda pendiente de subida automática
+      window.location.href = urlWpp;
+    }
   }
 </script>
 </body>
