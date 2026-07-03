@@ -38,30 +38,37 @@
     /* --- GRILLA DE RECLAMOS FORMATO MATRIZ --- */
     .ot-grilla-celdas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; background: #f8f9fa; }
     
-    /* --- CELDAS / RECLAMOS (COPIA FIEL DE LA HOJA FÍSICA) --- */
-    .ot-matrix-cell { border: 2px solid #000; background-color: #fff; display: flex; flex-direction: column; border-radius: 0px !important; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .ot-matrix-cell.prioritaria { border: 2.5px dashed #ff9900 !important; }
-    .ot-matrix-cell.realizado { opacity: 0.6; }
+    /* --- CELDAS / RECLAMOS --- */
+    .ot-matrix-cell { border: 2px solid #000; background-color: #fff; display: flex; flex-direction: column; border-radius: 0px !important; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative; }
+    
+    /* RESALTADO NUEVO (COLUMNA D TILDE): Borde sólido grueso rojo industrial */
+    .ot-matrix-cell.prioritaria { border: 3px solid #dc3545 !important; }
+    .ot-matrix-cell.prioritaria .ot-cell-header-piq { color: #dc3545; border-bottom: 2px solid #dc3545; }
+    
+    .ot-matrix-cell.realizado { opacity: 0.6; border: 2px solid #000 !important; }
     
     /* Encabezado de la celda: Número de piquete puro (Fondo blanco) */
     .ot-cell-header-piq { background: #ffffff !important; color: #000000; font-size: 16px; font-weight: bold; text-align: center; padding: 6px 2px; border-bottom: 2px solid #000000; text-transform: uppercase; }
     
-    /* Cuerpo de la celda: El detalle de la avería (Toma el color de fondo pastel) */
+    /* Cuerpo de la celda: El detalle de la avería (Fondo pastel asignado) */
     .ot-cell-body-detalle { font-size: 12px; font-weight: bold; color: #000000; text-align: center; padding: 12px 6px; flex-grow: 1; display: flex; align-items: center; justify-content: center; text-transform: uppercase; line-height: 1.3; }
     
-    /* Pie de la celda: Operaciones de la App */
-    .ot-cell-footer { background: #ffffff; border-top: 1px solid #000; padding: 4px; display: flex; flex-direction: column; gap: 4px; }
-    .ot-cell-badge { font-size: 9px; font-weight: bold; text-align: center; padding: 3px; border-radius: 0px; text-transform: uppercase; border: 1px solid #000; }
-    .badge-pend { background: #ffc107; color: #000; }
-    .badge-proc { background: #17a2b8; color: #fff; }
-    .badge-real { background: #6c757d; color: #fff; text-decoration: line-through; }
+    /* Pie de la celda: Operaciones de la App sin íconos ni redundancia */
+    .ot-cell-footer { background: #ffffff; border-top: 1px solid #000; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
     
     .ot-cell-actions { display: flex; gap: 4px; }
-    .ot-cell-btn { flex: 1; font-size: 12px; padding: 6px 0; border: 1px solid #000; border-radius: 0px; cursor: pointer; font-weight: bold; color: white; text-align: center; display: flex; align-items: center; justify-content: center; }
+    .ot-cell-btn { flex: 1; font-size: 11px; padding: 8px 2px; border: 1px solid #000; border-radius: 0px; cursor: pointer; font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; }
+    
+    /* Estilos limpios para botones de acción técnica */
+    .btn-action-proceso { background-color: #17a2b8; color: white; }
+    .btn-action-realizado { background-color: #28a745; color: white; }
+    
+    /* Cuadros de estado final / intermedio */
+    .ot-cell-status-proc { font-size: 10px; font-weight: bold; color: #17a2b8; text-align: center; border: 1px solid #17a2b8; padding: 4px; margin-bottom: 2px; letter-spacing: 0.5px; text-transform: uppercase; background: #eefcfe; }
+    .msg-realizado { font-size: 11px; font-weight: bold; color: #ffffff; text-align: center; background: #28a745; padding: 6px; border: 1px solid #28a745; letter-spacing: 0.5px; text-transform: uppercase; }
     
     .status-box { padding: 12px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border: 2px solid #ff9900; background-color: #fffdf5; }
     .welcome-user { font-size: 14px; font-weight: bold; color: #0056b3; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; }
-    .msg-bloqueado { font-size: 10px; font-weight: bold; color: #28a745; text-align: center; background: #d4edda; padding: 5px; border: 1px solid #000; border-radius: 0px; }
   </style>
 </head>
 <body>
@@ -274,25 +281,21 @@
       return;
     }
 
-    // Agrupar reclamos por Categoría (PODA, NIDO, PUESTA A TIERRA, etc.)
     const grupos = {};
     filtrados.forEach(r => {
       if (!grupos[r.categoria]) grupos[r.categoria] = [];
       grupos[r.categoria].push(r);
     });
 
-    // Armar el bloque por cada tipo de avería
     for (const categoria in grupos) {
       const bloqueCat = document.createElement('div');
       bloqueCat.className = 'ot-bloque-categoria';
 
-      // Banda superior azul con el nombre de la categoría (Tipo de Avería)
       const bandaTitulo = document.createElement('div');
       bandaTitulo.className = 'ot-banda-titulo';
       bandaTitulo.innerText = categoria;
       bloqueCat.appendChild(bandaTitulo);
 
-      // Grilla de celdas internas en paralelo (2 columnas óptimas para celular)
       const grillaCeldas = document.createElement('div');
       grillaCeldas.className = 'ot-grilla-celdas';
 
@@ -310,34 +313,37 @@
 
         let vanoTexto = r.datosFila[4] !== undefined && r.datosFila[4] !== "" ? r.datosFila[4] : "S/V";
         let detalleTexto = r.datosFila[8] !== undefined && r.datosFila[8] !== "" ? r.datosFila[8] : "-";
-        let colorFinal = r.colorFondo || "#ffffff"; // Color pastel de la celda desde Sheets
+        let colorFinal = r.colorFondo || "#ffffff";
 
         const cell = document.createElement('div');
         cell.className = `ot-matrix-cell ${estadoActual === 'Realizado' ? 'realizado' : ''} ${esPrioritario && estadoActual !== 'Realizado' ? 'prioritaria' : ''}`;
 
-        let badgeClase = 'badge-pend';
-        if (estadoActual === 'En proceso') badgeClase = 'badge-proc';
-        if (estadoActual === 'Realizado') badgeClase = 'badge-real';
-
+        // Control estricto de las opciones/estados sin usar badges redundantes de "PENDIENTE"
         let accionesHtml = '';
         if (estadoActual === 'Realizado') {
-          accionesHtml = `<div class="msg-bloqueado">✓ COMPLETO</div>`;
+          accionesHtml = `<div class="msg-realizado">REALIZADO</div>`;
+        } else if (estadoActual === 'En proceso') {
+          accionesHtml = `
+            <div class="ot-cell-status-proc">EN PROCESO</div>
+            <div class="ot-cell-actions">
+              <button class="ot-cell-btn btn-action-realizado" onclick="procesarCambioEstado(${r.numFila}, 'Realizado')">Realizado</button>
+            </div>
+          `;
         } else {
+          // Si está pendiente, directamente muestra los dos botones planos para operar de una sola pulsación
           accionesHtml = `
             <div class="ot-cell-actions">
-              <button class="ot-cell-btn" style="background:#17a2b8;" onclick="procesarCambioEstado(${r.numFila}, 'En proceso')">⏳</button>
-              <button class="ot-cell-btn" style="background:#28a745;" onclick="procesarCambioEstado(${r.numFila}, 'Realizado')">✅</button>
+              <button class="ot-cell-btn btn-action-proceso" onclick="procesarCambioEstado(${r.numFila}, 'En proceso')">En proceso</button>
+              <button class="ot-cell-btn btn-action-realizado" onclick="procesarCambioEstado(${r.numFila}, 'Realizado')">Realizado</button>
             </div>
           `;
         }
 
-        // MAQUETADO EXTREMADAMENTE COMPACTO Y FIEL A LA CELDA ORIGINAL IMPRESA:
-        // Fila superior en blanco con número de piquete. Fila inferior de color completo con la avería.
+        // Estructura de celda sin diana y sin íconos. Piquete arriba, avería abajo.
         cell.innerHTML = `
-          <div class="ot-cell-header-piq">${esPrioritario && estadoActual !== 'Realizado' ? '🎯 ' : ''}${vanoTexto}</div>
+          <div class="ot-cell-header-piq">Piq. ${vanoTexto}</div>
           <div class="ot-cell-body-detalle" style="background-color: ${colorFinal} !important;">${detalleTexto}</div>
           <div class="ot-cell-footer">
-            <span class="ot-cell-badge ${badgeClase}">${estadoActual}</span>
             ${accionesHtml}
           </div>
         `;
@@ -394,7 +400,7 @@
     let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
 
     let msg = `*REPORTE DE MOVIMIENTO RAT*\n`;
-    msg += `*Estado:* ${nuevoEstado === 'Realizado' ? '✅ REALIZADO' : '⏳ EN PROCESO'}\n`;
+    msg += `*Estado:* ${nuevoEstado === 'Realizado' ? 'REALIZADO' : 'EN PROCESO'}\n`;
     msg += `*Fila:* #${reclamo.numFila}\n`;
     msg += `*Línea:* ${reclamo.linea}\n`;
     msg += `*Piquete:* ${vanoWpp}\n`;
