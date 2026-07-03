@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Cuadrillas RAT - Formato OT</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0056b3">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 10px; background-color: #f4f6f9; color: #000; }
+    .container { max-width: 800px; margin: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    
+    #pantalla-login { display: block; }
+    #pantalla-principal { display: none; }
+    
+    .seccion-encargado { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 2px solid #000; }
+    .seccion-encargado label { font-weight: bold; font-size: 14px; display: block; margin-top: 8px; }
+    
+    .btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; text-align: center; box-sizing: border-box; }
+    .btn-primary { background-color: #0056b3; color: white; border: 1px solid #000; }
+    .btn-success { background-color: #28a745; color: white; border: 1px solid #000; }
+    .btn-danger { background-color: #dc3545; color: white; padding: 6px; font-size: 12px; margin-top: 10px; border: 1px solid #000; }
+    
+    select, input[type="password"] { width: 100%; padding: 10px; margin: 5px 0; border-radius: 4px; border: 2px solid #000; font-size: 15px; box-sizing: border-box; background: white; }
+    
+    /* --- CABECERA ESTILO DOCUMENTO OT ORIGINAL (EPEC) --- */
+    .ot-doc-header { border: 2px solid #000; background: #fff; margin-bottom: 15px; border-radius: 4px; }
+    .ot-doc-top { display: flex; border-bottom: 2px solid #000; }
+    .ot-doc-logo { padding: 10px; font-size: 15px; font-weight: bold; text-align: center; border-right: 2px solid #000; background: #f1f3f5; flex: 1; line-height: 1.2; }
+    .ot-doc-title { padding: 10px; font-size: 13px; font-weight: bold; text-align: center; flex: 3; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4; display: flex; align-items: center; justify-content: center; }
+    .ot-doc-meta { padding: 8px 12px; background: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 4px; border-bottom: 1px dashed #000; }
+    .ot-doc-sub { background: #e9ecef; text-align: center; font-weight: bold; font-size: 12px; padding: 5px; border-top: 1px solid #000; border-bottom: 2px solid #000; letter-spacing: 1px; }
+
+    /* --- FILAS DE MATRIZ DE TIPO DE AVERÍA --- */
+    .ot-row { display: flex; border: 2px solid #000; margin-bottom: 15px; background: #fff; border-radius: 4px; overflow: hidden; }
+    .ot-row-header { width: 100px; background: #0056b3; color: white; font-weight: bold; display: flex; align-items: center; justify-content: center; text-align: center; padding: 8px; font-size: 13px; text-transform: uppercase; border-right: 2px solid #000; flex-shrink: 0; word-break: break-word; }
+    .ot-row-cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); flex-grow: 1; background: #e9ecef; gap: 1px; }
+    
+    /* --- CELDAS / PIQUETES --- */
+    .ot-matrix-cell { border: 1px solid #bbb; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; min-height: 160px; background-color: #fff; position: relative; }
+    .ot-matrix-cell.prioritaria { border: 2.5px dashed #ff9900 !important; }
+    .ot-matrix-cell.realizado { background-color: #e9ecef !important; opacity: 0.7; }
+    
+    .ot-cell-vano { font-size: 15px; font-weight: bold; text-align: center; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 5px; background: rgba(255,255,255,0.7); border-radius: 2px; }
+    .ot-cell-detalle { font-size: 11px; font-weight: bold; text-align: center; line-height: 1.3; flex-grow: 1; display: flex; align-items: center; justify-content: center; text-transform: uppercase; margin-bottom: 5px; }
+    
+    .ot-cell-footer { display: flex; flex-direction: column; gap: 4px; margin-top: auto; }
+    .ot-cell-badge { font-size: 9px; font-weight: bold; text-align: center; padding: 2px; border-radius: 3px; text-transform: uppercase; border: 1px solid rgba(0,0,0,0.2); }
+    .badge-pend { background: #ffc107; color: #000; }
+    .badge-proc { background: #17a2b8; color: #fff; }
+    .badge-real { background: #6c757d; color: #fff; text-decoration: line-through; }
+    
+    .ot-cell-actions { display: flex; gap: 3px; }
+    .ot-cell-btn { flex: 1; font-size: 10px; padding: 6px 2px; border: 1px solid #000; border-radius: 3px; cursor: pointer; font-weight: bold; color: white; text-align: center; }
+    
+    .status-box { padding: 12px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border: 2px solid #ff9900; background-color: #fffdf5; }
+    .welcome-user { font-size: 14px; font-weight: bold; color: #0056b3; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; }
+    .msg-bloqueado { font-size: 10px; font-weight: bold; color: #28a745; text-align: center; background: #d4edda; padding: 4px; border: 1px solid #28a745; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <!-- PANTALLA 1: LOGIN OBLIGATORIO -->
+  <div id="pantalla-login">
+    <div class="ot-doc-header" style="margin-bottom:20px;">
+      <div class="ot-doc-top">
+        <div class="ot-doc-logo">EPEC<br><small>REDES A.T.</small></div>
+        <div class="ot-doc-title">ACCESO PLANILLA DIGITAL DE INSPECCIÓN</div>
+      </div>
+    </div>
+    <div class="seccion-encargado">
+      <label for="login-cuadrilla">Configurar Cuadrilla:</label>
+      <select id="login-cuadrilla"><option value="">-- Seleccione Cuadrilla --</option></select>
+
+      <label for="login-capataz">👤 Seleccionar Capataz:</label>
+      <select id="login-capataz"><option value="">-- Seleccione Capataz --</option></select>
+
+      <label for="login-password">🔑 Contraseña de Acceso:</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      
+      <button class="btn btn-primary" style="margin-top: 15px;" onclick="ingresarApp()">Ingresar al Sistema 🔓</button>
+    </div>
+    <button class="btn btn-success" style="font-size: 13px;" onclick="descargarDatosOnline()">Sincronizar Listas y Claves (Con Señal)</button>
+  </div>
+
+  <!-- PANTALLA 2: APLICACIÓN PRINCIPAL (FORMATO OT DOCUMENT) -->
+  <div id="pantalla-principal">
+    <div class="welcome-user">
+      <span id="txt-user-activo">Capataz: -</span>
+      <button class="btn-danger" style="margin:0; padding: 4px 8px; border-radius:4px;" onclick="cerrarSesion()">Salir</button>
+    </div>
+
+    <!-- CABECERA SIMULADA DE ORDEN DE TRABAJO ORIGINAL -->
+    <div class="ot-doc-header">
+      <div class="ot-doc-top">
+        <div class="ot-doc-logo"><b>EPEC</b><br><small>DEPARTAMENTO<br>REDES ALTA TENSIÓN</small></div>
+        <div class="ot-doc-title"><b>ORDEN DE TRABAJO</b><br>MANTENIMIENTO REGLAMENTARIO</div>
+      </div>
+      <div class="ot-doc-meta">
+        <div><b>TRAMO / LÍNEA SELECCIONADA:</b></div>
+        <select id="select-linea" style="margin: 5px 0 2px 0;" onchange="renderizarReclamosAgrupados()">
+          <option value="">-- Seleccione un tramo asignado --</option>
+        </select>
+        <div style="margin-top: 3px;"><b>ENCARGADO DEL TRABAJO:</b> <span id="ot-lbl-capataz" style="text-transform:uppercase; font-weight:bold;">-</span></div>
+      </div>
+      <div class="ot-doc-sub">TRABAJOS A REALIZAR [TCT Y TST]</div>
+    </div>
+
+    <div id="sync-status" class="status-box" style="display:none;"></div>
+
+    <button class="btn btn-primary" onclick="descargarDatosOnline()">🔄 1. Sincronizar Datos Nuevos (Con Señal)</button>
+    
+    <!-- CONTENEDOR DE LA MATRIZ DE RECLAMOS -->
+    <div id="lista-reclamos"></div>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 2px dashed #000;">
+    <button class="btn btn-success" style="font-size: 16px;" onclick="sincronizarConPlanilla()">💾 2. Subir Cambios Guardados a Planilla</button>
+  </div>
+
+</div>
+
+<script>
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx8KCIwjKTJM4pjqUrmrgP2Z9rHr0uIfO2r34lHWLfvRa4dPpByc3-ysX_Jbdpqt73YTg/exec";
+
+  let reclamosCache = JSON.parse(localStorage.getItem('cuadrilla_reclamos')) || [];
+  let resumenCache = JSON.parse(localStorage.getItem('cuadrilla_resumen')) || [];
+  let cambiosPendientes = JSON.parse(localStorage.getItem('cuadrilla_cambios')) || [];
+  let opcionesDetalle = JSON.parse(localStorage.getItem('cuadrilla_detalles')) || { cuadrillas: [], capataces: [] };
+
+  window.onload = function() {
+    poblarSelectsLogin();
+    verificarSesionActiva();
+    actualizarAlertaCambios();
+  };
+
+  function poblarSelectsLogin() {
+    const selCuad = document.getElementById('login-cuadrilla');
+    const selCap = document.getElementById('login-capataz');
+    
+    selCuad.innerHTML = '<option value="">-- Seleccione Cuadrilla --</option>';
+    opcionesDetalle.cuadrillas.forEach(c => { selCuad.innerHTML += `<option value="${c}">${c}</option>`; });
+
+    selCap.innerHTML = '<option value="">-- Seleccione Capataz --</option>';
+    opcionesDetalle.capataces.forEach(c => {
+      const nombreCapataz = (typeof c === 'object') ? c.nombre : c;
+      selCap.innerHTML += `<option value="${nombreCapataz}">${nombreCapataz}</option>`;
+    });
+
+    selCuad.value = localStorage.getItem('pref_cuadrilla') || "";
+    selCap.value = localStorage.getItem('pref_capataz') || "";
+  }
+
+  function verificarSesionActiva() {
+    const capatazLogueado = localStorage.getItem('sesion_capataz');
+    if (capatazLogueado) {
+      document.getElementById('pantalla-login').style.display = 'none';
+      document.getElementById('pantalla-principal').style.display = 'block';
+      document.getElementById('txt-user-activo').innerText = `👤 ${capatazLogueado} (${localStorage.getItem('pref_cuadrilla')})`;
+      document.getElementById('ot-lbl-capataz').innerText = capatazLogueado;
+      poblarLineasFiltro();
+    } else {
+      document.getElementById('pantalla-login').style.display = 'block';
+      document.getElementById('pantalla-principal').style.display = 'none';
+    }
+  }
+
+  function ingresarApp() {
+    const cuad = document.getElementById('login-cuadrilla').value;
+    const capNombre = document.getElementById('login-capataz').value;
+    const passIngresada = document.getElementById('login-password').value;
+
+    if (!cuad || !capNombre || !passIngresada) {
+      alert("Por favor complete todos los campos.");
+      return;
+    }
+
+    const registroCapataz = opcionesDetalle.capataces.find(c => ((typeof c === 'object' ? c.nombre : c) === capNombre));
+    const passCorrecta = (registroCapataz && typeof registroCapataz === 'object') ? registroCapataz.password : "1234";
+
+    if (passIngresada !== passCorrecta) {
+      alert("❌ Contraseña incorrecta.");
+      return;
+    }
+
+    localStorage.setItem('pref_cuadrilla', cuad);
+    localStorage.setItem('pref_capataz', capNombre);
+    localStorage.setItem('sesion_capataz', capNombre);
+    document.getElementById('login-password').value = "";
+    verificarSesionActiva();
+  }
+
+  function cerrarSesion() {
+    if(cambiosPendientes.length > 0) {
+      if(!confirm("Tenés cambios sin subir. ¿Salir igual?")) return;
+    }
+    localStorage.removeItem('sesion_capataz');
+    verificarSesionActiva();
+  }
+
+  function actualizarAlertaCambios() {
+    const alertBox = document.getElementById('sync-status');
+    if (cambiosPendientes.length > 0) {
+      alertBox.style.display = 'block';
+      alertBox.innerText = `⚠️ Tienes ${cambiosPendientes.length} cambio(s) listos. ¡No olvides subirlos con internet!`;
+    } else {
+      alertBox.style.display = 'none';
+    }
+  }
+
+  function descargarDatosOnline() {
+    if(!navigator.onLine) return alert("Sin conexión a internet.");
+    document.body.style.opacity = "0.5";
+
+    fetch(`${WEB_APP_URL}?action=obtenerDatos`)
+      .then(res => res.json())
+      .then(res => {
+        document.body.style.opacity = "1";
+        if (res.error) return alert("Error: " + res.error);
+        
+        reclamosCache = res.data;
+        resumenCache = res.resumen || [];
+        opcionesDetalle = { cuadrillas: res.cuadrillas, capataces: res.capataces };
+        
+        localStorage.setItem('cuadrilla_reclamos', JSON.stringify(reclamosCache));
+        localStorage.setItem('cuadrilla_resumen', JSON.stringify(resumenCache));
+        localStorage.setItem('cuadrilla_detalles', JSON.stringify(opcionesDetalle));
+        
+        poblarSelectsLogin();
+        poblarLineasFiltro();
+        alert("¡OT Digital Sincronizada con Éxito!");
+      })
+      .catch((err) => {
+        document.body.style.opacity = "1";
+        alert("Fallo de conexión.");
+      });
+  }
+
+  function poblarLineasFiltro() {
+    const select = document.getElementById('select-linea');
+    select.innerHTML = '<option value="">-- Seleccione un tramo asignado --</option>';
+    const capatazLogueado = localStorage.getItem('sesion_capataz') || "";
+    
+    const lineasAsignadas = resumenCache
+      .filter(r => r.capataz.toLowerCase() === capatazLogueado.toLowerCase())
+      .map(r => r.linea);
+
+    const lineasDisponibles = [...new Set(reclamosCache.map(r => r.linea))]
+      .filter(l => lineasAsignadas.includes(l))
+      .filter(Boolean);
+
+    if(lineasDisponibles.length === 0) {
+      select.innerHTML = '<option value="">-- Sin líneas asignadas en Resumen --</option>';
+    } else {
+      lineasDisponibles.sort().forEach(l => { select.innerHTML += `<option value="${l}">${l}</option>`; });
+    }
+    document.getElementById('lista-reclamos').innerHTML = '';
+  }
+
+  /* --- RENDERIZADO EN FORMATO MATRIZ DE ORDEN DE TRABAJO ORIGINAL --- */
+  function renderizarReclamosAgrupados() {
+    const lineaSeleccionada = document.getElementById('select-linea').value;
+    const listaDiv = document.getElementById('lista-reclamos');
+    listaDiv.innerHTML = '';
+    if (!lineaSeleccionada) return;
+
+    let filtrados = reclamosCache.filter(r => r.linea === lineaSeleccionada);
+    if (filtrados.length === 0) {
+      listaDiv.innerHTML = '<p style="text-align:center; color:#666;">No hay tareas en este tramo.</p>';
+      return;
+    }
+
+    // Agrupar reclamos estrictamente por Categoría (Tipo de Avería)
+    const grupos = {};
+    filtrados.forEach(r => {
+      if (!grupos[r.categoria]) grupos[r.categoria] = [];
+      grupos[r.categoria].push(r);
+    });
+
+    // Crear la estructura de Filas y Columnas como en el PDF
+    for (const categoria in grupos) {
+      const otRow = document.createElement('div');
+      otRow.className = 'ot-row';
+
+      // Columna Izquierda: Tipo de Avería (PODA, NIDO, etc.)
+      const otRowHeader = document.createElement('div');
+      otRowHeader.className = 'ot-row-header';
+      otRowHeader.innerText = categoria;
+      otRow.appendChild(otRowHeader);
+
+      // Columna Derecha: Grilla de Celdas/Piquetes correspondientes
+      const otRowCells = document.createElement('div');
+      otRowCells.className = 'ot-row-cells';
+
+      // Ordenar las celdas para que las prioritarias aparezcan primero en su fila
+      grupos[categoria].sort((a, b) => {
+        let aCheck = a.datosFila[3] === true || a.datosFila[3] === "TRUE";
+        let bCheck = b.datosFila[3] === true || b.datosFila[3] === "TRUE";
+        return bCheck - aCheck;
+      });
+
+      grupos[categoria].forEach(r => {
+        const cambioLocal = cambiosPendientes.find(c => c.numFila === r.numFila);
+        const estadoActual = cambioLocal ? cambioLocal.nuevoEstado : r.estado;
+        const esPrioritario = r.datosFila[3] === true || r.datosFila[3] === "TRUE";
+
+        let vanoTexto = r.datosFila[4] !== undefined && r.datosFila[4] !== "" ? r.datosFila[4] : "S/V";
+        let detalleTexto = r.datosFila[8] !== undefined && r.datosFila[8] !== "" ? r.datosFila[8] : "-";
+        let colorFinal = r.colorFondo || "#ffffff"; // Viene traducido en pastel desde el backend[cite: 1]
+
+        const cell = document.createElement('div');
+        cell.className = `ot-matrix-cell ${estadoActual === 'Realizado' ? 'realizado' : ''} ${esPrioritario && estadoActual !== 'Realizado' ? 'prioritaria' : ''}`;
+        
+        // Si no está realizado, aplicamos el color pastel de la planilla en la celda[cite: 1]
+        if (estadoActual !== 'Realizado') {
+          cell.style.setAttribute("style", `background-color: ${colorFinal} !important;`);
+        }
+
+        let badgeClase = 'badge-pend';
+        if (estadoActual === 'En proceso') badgeClase = 'badge-proc';
+        if (estadoActual === 'Realizado') badgeClase = 'badge-real';
+
+        let accionesHtml = '';
+        if (estadoActual === 'Realizado') {
+          accionesHtml = `<div class="msg-bloqueado">✓ COMPLETO</div>`;
+        } else {
+          accionesHtml = `
+            <div class="ot-cell-actions">
+              <button class="ot-cell-btn" style="background:#17a2b8;" onclick="procesarCambioEstado(${r.numFila}, 'En proceso')">⏳</button>
+              <button class="ot-cell-btn" style="background:#28a745;" onclick="procesarCambioEstado(${r.numFila}, 'Realizado')">✅</button>
+            </div>
+          `;
+        }
+
+        // Armamos el cuerpo de la celda compacta técnica
+        cell.innerHTML = `
+          <div class="ot-cell-vano">${esPrioritario && estadoActual !== 'Realizado' ? '🎯 ' : ''}Piq. ${vanoTexto}</div>
+          <div class="ot-cell-detalle">${detalleTexto}</div>
+          <div class="ot-cell-footer">
+            <span class="ot-cell-badge ${badgeClase}">${estadoActual}</span>
+            ${accionesHtml}
+          </div>
+        `;
+        
+        otRowCells.appendChild(cell);
+      });
+
+      otRow.appendChild(otRowCells);
+      listaDiv.appendChild(otRow);
+    }
+  }
+
+  function procesarCambioEstado(numFila, nuevoEstado) {
+    const cuad = localStorage.getItem('pref_cuadrilla');
+    const cap = localStorage.getItem('sesion_capataz');
+    const reclamo = reclamosCache.find(r => r.numFila === numFila);
+    let comentario = "";
+
+    if (nuevoEstado === "En proceso") {
+      comentario = prompt("Escriba un avance para la columna J:");
+      if (comentario === null) return; 
+      if (comentario.trim() === "") {
+        alert("El avance es obligatorio.");
+        return;
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, `https://www.google.com/maps?q=${lat},${lon}`);
+        },
+        function(error) {
+          guardarLocalYaveragedWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No disponible GPS");
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuad, cap, reclamo, "No soportado");
+    }
+  }
+
+  function guardarLocalYEnviarWpp(numFila, nuevoEstado, comentario, cuadrilla, capataz, reclamo, linkMapas) {
+    cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
+    cambiosPendientes.push({ numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario });
+    localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
+    
+    actualizarAlertaCambios();
+    renderizarReclamosAgrupados();
+
+    let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
+    let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
+
+    let msg = `*REPORTE DE MOVIMIENTO RAT*\n`;
+    msg += `*Estado:* ${nuevoEstado === 'Realizado' ? '✅ REALIZADO' : '⏳ EN PROCESO'}\n`;
+    msg += `*Fila:* #${reclamo.numFila}\n`;
+    msg += `*Línea:* ${reclamo.linea}\n`;
+    msg += `*Piquete:* ${vanoWpp}\n`;
+    msg += `*Detalle:* ${detalleWpp}\n`;
+    msg += `*Categoría:* ${reclamo.categoria}\n`;
+    msg += `*Cuadrilla:* ${cuadrilla}\n`;
+    msg += `*Capataz:* ${capataz}\n`;
+    
+    if (comentario && nuevoEstado === "En proceso") {
+      msg += `*Avance:* _${comentario}_\n`;
+    }
+    msg += `*Ubicación:* ${linkMapas}\n`;
+
+    const urlWpp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
+    window.location.href = urlWpp; // Redirección instantánea sin bloqueos móviles[cite: 1]
+  }
+
+  function sincronizarConPlanilla() {
+    if (cambiosPendientes.length === 0) return alert("No hay movimientos para subir.");
+    if (!navigator.onLine) return alert("Estás sin señal de internet.");
+    document.body.style.opacity = "0.5";
+
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: JSON.stringify({ action: "guardarCambios", cambios: cambiosPendientes })
+    })
+    .then(() => {
+      document.body.style.opacity = "1";
+      alert("¡Planilla actualizada! Datos guardados en Columna G.");
+      cambiosPendientes = [];
+      localStorage.removeItem('cuadrilla_cambios');
+      actualizarAlertaCambios();
+      descargarDatosOnline();
+    })
+    .catch(() => {
+      document.body.style.opacity = "1";
+      alert("Error al enviar.");
+    });
+  }
+</script>
+</body>
+</html>
