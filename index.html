@@ -45,27 +45,24 @@
     .ot-matrix-cell.prioritaria { border: 3px solid #dc3545 !important; }
     .ot-matrix-cell.prioritaria .ot-cell-header-piq { color: #dc3545; border-bottom: 2px solid #dc3545; }
     
-    .ot-matrix-cell.realizado { opacity: 0.6; border: 2px solid #000 !important; }
-    
     /* Encabezado de la celda: Número de piquete puro (Fondo blanco) */
     .ot-cell-header-piq { background: #ffffff !important; color: #000000; font-size: 16px; font-weight: bold; text-align: center; padding: 6px 2px; border-bottom: 2px solid #000000; text-transform: uppercase; }
     
     /* Cuerpo de la celda: El detalle de la avería (Fondo pastel asignado) */
     .ot-cell-body-detalle { font-size: 12px; font-weight: bold; color: #000000; text-align: center; padding: 12px 6px; flex-grow: 1; display: flex; align-items: center; justify-content: center; text-transform: uppercase; line-height: 1.3; }
     
-    /* Pie de la celda: Operaciones de la App sin íconos ni redundancia */
+    /* Pie de la celda */
     .ot-cell-footer { background: #ffffff; border-top: 1px solid #000; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
     
     .ot-cell-actions { display: flex; gap: 4px; }
     .ot-cell-btn { flex: 1; font-size: 11px; padding: 8px 2px; border: 1px solid #000; border-radius: 0px; cursor: pointer; font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; }
     
-    /* Estilos limpios para botones de acción técnica */
+    /* Estilos para botones de acción técnica */
     .btn-action-proceso { background-color: #17a2b8; color: white; }
     .btn-action-realizado { background-color: #28a745; color: white; }
     
     /* Cuadros de estado final / intermedio */
     .ot-cell-status-proc { font-size: 10px; font-weight: bold; color: #17a2b8; text-align: center; border: 1px solid #17a2b8; padding: 4px; margin-bottom: 2px; letter-spacing: 0.5px; text-transform: uppercase; background: #eefcfe; }
-    .msg-realizado { font-size: 11px; font-weight: bold; color: #ffffff; text-align: center; background: #28a745; padding: 6px; border: 1px solid #28a745; letter-spacing: 0.5px; text-transform: uppercase; }
     
     .status-box { padding: 12px; text-align: center; font-weight: bold; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border: 2px solid #dc3545; background-color: #fff5f5; color: #dc3545; }
     .welcome-user { font-size: 14px; font-weight: bold; color: #0056b3; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 15px; }
@@ -288,9 +285,19 @@
     listaDiv.innerHTML = '';
     if (!lineaSeleccionada) return;
 
-    let filtrados = reclamosCache.filter(r => r.linea === lineaSeleccionada);
+    // ⭐ MODIFICADO: Ahora filtra para excluir por completo todo reclamo con estado "Realizado"
+    let filtrados = reclamosCache.filter(r => {
+      if (r.linea !== lineaSeleccionada) return false;
+      
+      // Verifica si el cambio se hizo de forma local (offline) o viene de la hoja
+      const cambioLocal = cambiosPendientes.find(c => c.numFila === r.numFila);
+      const estadoActual = cambioLocal ? cambioLocal.nuevoEstado : r.estado;
+      
+      return estadoActual !== 'Realizado' && estadoActual !== 'REALIZADO';
+    });
+
     if (filtrados.length === 0) {
-      listaDiv.innerHTML = '<p style="text-align:center; color:#666;">No hay tareas en este tramo.</p>';
+      listaDiv.innerHTML = '<p style="text-align:center; color:#28a745; font-weight:bold; padding:20px;">¡Felicitaciones! No quedan tareas pendientes en este tramo.</p>';
       return;
     }
 
@@ -328,12 +335,10 @@
         let colorFinal = r.colorFondo || "#ffffff";
 
         const cell = document.createElement('div');
-        cell.className = `ot-matrix-cell ${estadoActual === 'Realizado' ? 'realizado' : ''} ${esPrioritario && estadoActual !== 'Realizado' ? 'prioritaria' : ''}`;
+        cell.className = `ot-matrix-cell ${esPrioritario ? 'prioritaria' : ''}`;
 
         let accionesHtml = '';
-        if (estadoActual === 'Realizado') {
-          accionesHtml = `<div class="msg-realizado">REALIZADO</div>`;
-        } else if (estadoActual === 'En proceso') {
+        if (estadoActual === 'En proceso') {
           accionesHtml = `
             <div class="ot-cell-status-proc">EN PROCESO</div>
             <div class="ot-cell-actions">
@@ -372,7 +377,7 @@
     let comentario = "";
 
     if (nuevoEstado === "En proceso") {
-      comentario = prompt("Escriba porque no pudo finalizar");
+      comentario = prompt("Escriba un avance para la columna J:");
       if (comentario === null) return; 
       if (comentario.trim() === "") {
         alert("El avance es obligatorio.");
