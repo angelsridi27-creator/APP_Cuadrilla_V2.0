@@ -23,7 +23,7 @@
     
     select, input[type="password"] { width: 100%; padding: 10px; margin: 5px 0; border-radius: 4px; border: 2px solid #000; font-size: 15px; box-sizing: border-box; background: white; }
     
-    /* --- CABECERA ESTIRO DOCUMENTO OT ORIGINAL (EPEC) --- */
+    /* --- CABECERA ESTILO DOCUMENTO OT ORIGINAL (EPEC) --- */
     .ot-doc-header { border: 2px solid #000; background: #fff; margin-bottom: 15px; border-radius: 4px; }
     .ot-doc-top { display: flex; border-bottom: 2px solid #000; }
     .ot-doc-logo { padding: 10px; font-size: 15px; font-weight: bold; text-align: center; border-right: 2px solid #000; background: #f1f3f5; flex: 1; line-height: 1.2; }
@@ -127,7 +127,7 @@
 
 </div>
 
-<script {nonce}>
+<script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx8KCIwjKTJM4pjqUrmrgP2Z9rHr0uIfO2r34lHWLfvRa4dPpByc3-ysX_Jbdpqt73YTg/exec";
 
   let reclamosCache = JSON.parse(localStorage.getItem('cuadrilla_reclamos')) || [];
@@ -146,7 +146,9 @@
     const selCap = document.getElementById('login-capataz');
     
     selCuad.innerHTML = '<option value="">-- Seleccione Cuadrilla --</option>';
-    opcionesDetalle.cuadrillas.forEach(c => { selCuad.innerHTML += `<option value="${c}">${c}</option>'; });
+    opcionesDetalle.cuadrillas.forEach(c => { 
+      selCuad.innerHTML += `<option value="${c}">${c}</option>`; 
+    });
 
     selCap.innerHTML = '<option value="">-- Seleccione Capataz --</option>';
     opcionesDetalle.capataces.forEach(c => {
@@ -219,7 +221,6 @@
     if(!navigator.onLine) return alert("Sin conexión a internet.");
     document.body.style.opacity = "0.5";
 
-    // Si detectamos cambios acumulados por falta de señal anterior, los vaciamos y subimos primero de forma automática
     let promesaPrevia = Promise.resolve();
     if (cambiosPendientes.length > 0) {
       promesaPrevia = fetch(WEB_APP_URL, {
@@ -396,11 +397,9 @@
     }
   }
 
-  /* --- INYECCIÓN EN CALIENTE DIRECTO A GOOGLE SHEETS --- */
   function guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuadrilla, capataz, reclamo, linkMapas) {
     const nuevoCambio = { numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario };
     
-    // 1. Registro inmediato en cola local (Seguridad por si se corta internet repentinamente)
     cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
     cambiosPendientes.push(nuevoCambio);
     localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
@@ -408,7 +407,6 @@
     actualizarAlertaCambios();
     renderizarReclamosAgrupados();
 
-    // 2. Preparar empaquetado del mensaje de WhatsApp
     let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
     let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
 
@@ -428,9 +426,8 @@
 
     const urlWpp = "https://api.whatsapp.com/send?text=" + encodeURIComponent(msg);
 
-    // 3. Estrategia de envío inmediato según conectividad
     if (navigator.onLine) {
-      document.body.style.opacity = "0.6"; // Feedback visual sutil de guardado
+      document.body.style.opacity = "0.6";
 
       fetch(WEB_APP_URL, {
         method: "POST",
@@ -438,18 +435,16 @@
         body: JSON.stringify({ action: "guardarCambios", cambios: [nuevoCambio] })
       })
       .then(() => {
-        // Al impactar correctamente en Sheets, lo sacamos de la cola de pendientes
         cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
         localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
         actualizarAlertaCambios();
       })
-      .catch(err => console.log("Guardado local retenido por microcorte:", err))
+      .catch(err => console.log("Retenido offline:", err))
       .finally(() => {
         document.body.style.opacity = "1";
-        window.location.href = urlWpp; // Salto automático a WhatsApp
+        window.location.href = urlWpp;
       });
     } else {
-      // Sin internet: salta directo a WhatsApp y queda pendiente de subida automática
       window.location.href = urlWpp;
     }
   }
