@@ -43,10 +43,9 @@
     
     /* RESALTADO TÉCNICO (COLUMNA D CON TILDE): Borde sólido grueso rojo industrial */
     .ot-matrix-cell.prioritaria { border: 3px solid #dc3545 !important; }
-    .ot-matrix-cell.prioritaria .ot-cell-header-piq { color: #dc3545; border-bottom: 2px solid #dc3545; }
     
-    /* Encabezado de la celda: Número de piquete puro (Fondo blanco) */
-    .ot-cell-header-piq { background: #ffffff !important; color: #000000; font-size: 16px; font-weight: bold; text-align: center; padding: 6px 2px; border-bottom: 2px solid #000000; text-transform: uppercase; }
+    /* Encabezado de la celda: Número de piquete puro (Fondo blanco por defecto) */
+    .ot-cell-header-piq { background: #ffffff; color: #000000; font-size: 16px; font-weight: bold; text-align: center; padding: 6px 2px; border-bottom: 2px solid #000000; text-transform: uppercase; }
     
     /* Cuerpo de la celda: El detalle de la avería (Fondo pastel asignado) */
     .ot-cell-body-detalle { font-size: 12px; font-weight: bold; color: #000000; text-align: center; padding: 12px 6px; flex-grow: 1; display: flex; align-items: center; justify-content: center; text-transform: uppercase; line-height: 1.3; }
@@ -126,6 +125,9 @@
 
 <script>
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx8KCIwjKTJM4pjqUrmrgP2Z9rHr0uIfO2r34lHWLfvRa4dPpByc3-ysX_Jbdpqt73YTg/exec";
+
+  // 🎨 CONFIGURACIÓN DE COLOR: Modificá este código hexadecimal por el color que quieras para el Piquete Prioritario
+  const COLOR_PIQUETE_PRIORITARIO = "#F527B4"; // (Por ejemplo: un rojo suave / rosado claro industrial)
 
   let reclamosCache = JSON.parse(localStorage.getItem('cuadrilla_reclamos')) || [];
   let resumenCache = JSON.parse(localStorage.getItem('cuadrilla_resumen')) || [];
@@ -335,6 +337,9 @@
         const cell = document.createElement('div');
         cell.className = `ot-matrix-cell ${esPrioritario ? 'prioritaria' : ''}`;
 
+        // ⭐ MODIFICADO: Genera el atributo de estilo inline para pintar el fondo si es prioritario
+        let estiloHeaderPiq = esPrioritario ? `style="background-color: ${COLOR_PIQUETE_PRIORITARIO} !important;"` : '';
+
         let accionesHtml = '';
         if (estadoActual === 'En proceso') {
           accionesHtml = `
@@ -353,7 +358,7 @@
         }
 
         cell.innerHTML = `
-          <div class="ot-cell-header-piq">Piq. ${vanoTexto}</div>
+          <div class="ot-cell-header-piq" ${estiloHeaderPiq}>Piq. ${vanoTexto}</div>
           <div class="ot-cell-body-detalle" style="background-color: ${colorFinal} !important;">${detalleTexto}</div>
           <div class="ot-cell-footer">
             ${accionesHtml}
@@ -375,7 +380,7 @@
     let comentario = "";
 
     if (nuevoEstado === "En proceso") {
-      comentario = prompt("Escriba porque no pudo terminar:");
+      comentario = prompt("Escriba un avance para la columna J:");
       if (comentario === null) return; 
       if (comentario.trim() === "") {
         alert("El avance es obligatorio.");
@@ -401,66 +406,63 @@
   }
 
   function guardarYSubirDeUna(numFila, nuevoEstado, comentario, cuadrilla, capataz, reclamo, linkMapas) {
-  const nuevoCambio = { numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario };
-  
-  // 1. Actualizar la cola de cambios pendientes (para el envío)
-  cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
-  cambiosPendientes.push(nuevoCambio);
-  localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
-  
-  // Actualización caché interna
-  const reclamoEnMemoria = reclamosCache.find(r => r.numFila === numFila);
-  if (reclamoEnMemoria) {
-    reclamoEnMemoria.estado = nuevoEstado;
-    localStorage.setItem('cuadrilla_reclamos', JSON.stringify(reclamosCache));
-  }
+    const nuevoCambio = { numFila: numFila, nuevoEstado: nuevoEstado, comentario: comentario };
+    
+    cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
+    cambiosPendientes.push(nuevoCambio);
+    localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
+    
+    const reclamoEnMemoria = reclamosCache.find(r => r.numFila === numFila);
+    if (reclamoEnMemoria) {
+      reclamoEnMemoria.estado = nuevoEstado;
+      localStorage.setItem('cuadrilla_reclamos', JSON.stringify(reclamosCache));
+    }
 
-  actualizarAlertaCambios();
-  renderizarReclamosAgrupados();
+    actualizarAlertaCambios();
+    renderizarReclamosAgrupados();
 
-  let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
-  let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
+    let vanoWpp = reclamo.datosFila[4] !== undefined && reclamo.datosFila[4] !== "" ? reclamo.datosFila[4] : "-";
+    let detalleWpp = reclamo.datosFila[8] !== undefined && reclamo.datosFila[8] !== "" ? reclamo.datosFila[8] : "-";
 
-  let msg = `*REPORTE DE MOVIMIENTO RAT*\n`;
-  msg += `*Estado:* ${nuevoEstado === 'Realizado' ? 'REALIZADO' : 'EN PROCESO'}\n`;
-  msg += `*Fila:* #${reclamo.numFila}\n`;
-  msg += `*Línea:* ${reclamo.linea}\n`;
-  msg += `*Piquete:* ${vanoWpp}\n`;
-  msg += `*Detalle:* ${detalleWpp}\n`;
-  msg += `*Categoría:* ${reclamo.categoria}\n`;
-  msg += `*Cuadrilla:* ${cuadrilla}\n`;
-  msg += `*Capataz:* ${capataz}\n`;
-  if (comentario && nuevoEstado === "En proceso") {
-    msg += `*Avance:* _${comentario}_\n`;
-  }
-  msg += `*Ubicación:* ${linkMapas}\n`;
+    let msg = `*REPORTE DE MOVIMIENTO RAT*\n`;
+    msg += `*Estado:* ${nuevoEstado === 'Realizado' ? 'REALIZADO' : 'EN PROCESO'}\n`;
+    msg += `*Fila:* #${reclamo.numFila}\n`;
+    msg += `*Línea:* ${reclamo.linea}\n`;
+    msg += `*Piquete:* ${vanoWpp}\n`;
+    msg += `*Detalle:* ${detalleWpp}\n`;
+    msg += `*Categoría:* ${reclamo.categoria}\n`;
+    msg += `*Cuadrilla:* ${cuadrilla}\n`;
+    msg += `*Capataz:* ${capataz}\n`;
+    if (comentario && nuevoEstado === "En proceso") {
+      msg += `*Avance:* _${comentario}_\n`;
+    }
+    msg += `*Ubicación:* ${linkMapas}\n`;
 
-  // ⭐ MODIFICADO: Cambiamos el enlace web por el protocolo directo para aplicaciones móviles
-  const urlWpp = "whatsapp://send?text=" + encodeURIComponent(msg);
+    const urlWpp = "whatsapp://send?text=" + encodeURIComponent(msg);
 
-  if (navigator.onLine) {
-    document.body.style.opacity = "0.6";
+    if (navigator.onLine) {
+      document.body.style.opacity = "0.6";
 
-    fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify({ action: "guardarCambios", cambios: [nuevoCambio] })
-    })
-    .then(() => {
-      cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
-      localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
-      actualizarAlertaCambios();
-      renderizarReclamosAgrupados(); 
-    })
-    .catch(err => console.log("Retenido offline:", err))
-    .finally(() => {
-      document.body.style.opacity = "1";
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({ action: "guardarCambios", cambios: [nuevoCambio] })
+      })
+      .then(() => {
+        cambiosPendientes = cambiosPendientes.filter(c => c.numFila !== numFila);
+        localStorage.setItem('cuadrilla_cambios', JSON.stringify(cambiosPendientes));
+        actualizarAlertaCambios();
+        renderizarReclamosAgrupados(); 
+      })
+      .catch(err => console.log("Retenido offline:", err))
+      .finally(() => {
+        document.body.style.opacity = "1";
+        window.location.href = urlWpp;
+      });
+    } else {
       window.location.href = urlWpp;
-    });
-  } else {
-    window.location.href = urlWpp;
+    }
   }
-}
 </script>
 </body>
 </html>
